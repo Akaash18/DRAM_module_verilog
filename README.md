@@ -41,13 +41,13 @@ error [1:0]: Error code:
 
 **Refresh:** Refreshes memory based on temperature:
 
->40°C → adaptive refresh.
+ >40°C → adaptive refresh.
 
 ≤40°C → scheduled refresh.
 
 **Error:** Displays appropriate error messages based on the error type.
 
-** Memory:**
+**Memory:**
 A 2D array mem[1023][1023] of 32-bit values.
 
 Memory data uses parity bit at bit 31 for error detection:

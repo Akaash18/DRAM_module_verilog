@@ -6,7 +6,8 @@ input[9:0] column,
 input[31:0] data_in,
 output reg[31:0] data_out,
 output reg[1:0] error,
-input[7:0] temp
+input[7:0] temp,
+output reg[2:0] current_state_reg
 );
 reg[31:0] mem [1023:0][1023:0]; //[row][column]
 reg[2:0] current_state;
@@ -27,11 +28,13 @@ always @ (posedge clk)
     begin
         current_state<=next_state;
             temp_reg <= temp;  // capture temp value
-             $display("current_state = %b, next_state = %b", current_state, next_state);
-
+         current_state_reg<=next_state;
     end
+  
+ 
 always @(*)
     begin
+        $display("opcode=%b, current_state=%b" ,opcode,current_state);
         case(current_state) 
              Initial:
                begin
@@ -41,7 +44,7 @@ always @(*)
                   next_state<=Idle;
                end
              Idle:
-             begin
+               begin
                  if (opcode==2'b01)
                      begin
                      next_state<=Read;
@@ -57,13 +60,14 @@ always @(*)
                      else 
                      begin
                      next_state<=Idle;
-                     end
+                     end             
                end
              Read:
                 begin
                   if(mem[row][column][31]==^mem[row][column][30:0]) 
                     begin
                         data_out<=mem[row][column];
+                        $display("Read successfully");
                         next_state<=Idle;
                     end
                   else 
@@ -77,6 +81,7 @@ always @(*)
                   if(data_in[31]==^data_in[30:0]) 
                     begin
                         mem[row][column] <= data_in;
+                        $display("Written successfully");
                         next_state<=Idle;
                     end
                   else 
@@ -84,7 +89,8 @@ always @(*)
                         next_state<=Error;
                         error<=2'b10;
                     end               
-                end                        
+                end
+                                     
             Refresh:
                 begin
                 if(temp_reg>8'b00101000)      begin
@@ -111,23 +117,23 @@ always @(*)
                    end
                   
                    next_state<=Idle;
-                end 
+            end 
                 
             Error:
                  begin
                   if (error==2'b10)begin
                       $display("Error while writing");
                       next_state<=Idle;
-                    end
+                 end
                 
                  else if (error==2'b01)begin 
                        $display("Error while reading");
-                       next_state<=Idle;                   
+                       next_state<=Idle;
                    end
                   end  
                   
             default: 
-                  next_state<=Idle;
+                  next_state<=Idle;  
         endcase
      end
 endmodule
